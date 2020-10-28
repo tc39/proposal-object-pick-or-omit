@@ -6,7 +6,7 @@ Spec drafted by [@Aleen](https://github.com/aleen42).
 
 ### Motivation
 
-- To operate an object convenient by picking or omitting its properties, describe in [the group](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
+- To operate an object convenient by picking or omitting its properties, described in [the group](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
 
 ### Syntax
 

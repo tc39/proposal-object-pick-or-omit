@@ -1,6 +1,6 @@
-## `Object.prototype.pick` / `Object.prototype.omit`
+## `Object.pick` / `Object.omit`
 
-ECMAScript Proposal, specs, and reference implementation for `Object.prototype.pick` and `Object.prototype.omit`.
+ECMAScript Proposal, specs, and reference implementation for `Object.pick` and `Object.omit`.
 
 Spec drafted by [@Aleen](https://github.com/aleen42).
 
@@ -11,8 +11,8 @@ Spec drafted by [@Aleen](https://github.com/aleen42).
 ### Syntax
 
 ```
-obj.pick(pickedKeys)
-obj.omit(omittedKeys) 
+Object.pick(obj, pickedKeys)
+Object.omit(obj, omittedKeys) 
 ```
 
 #### Parameters
@@ -22,16 +22,16 @@ obj.omit(omittedKeys)
 
 #### Returns
 
-Returns a new object, which has picked or omitted properties from the original one.
+Returns a new object, which has picked or omitted properties from the object.
 
 ### Usage
 
 ```js
-({a : 1, b : 2}).pick(['a']); // => {a : 1}
-({a : 1, b : 2}).omit(['b']); // => {b : 1}
+Object.pick({a : 1, b : 2}, ['a']); // => {a : 1}
+Object.omit({a : 1, b : 2}, ['b']); // => {b : 1}
 
-({a : 1, b : 2}).pick(['c']); // => {}
-({a : 1, b : 2}).omit(['c']); // => {a : 1, b : 2}
+Object.pick({a : 1, b : 2}, ['c']); // => {}
+Object.omit({a : 1, b : 2}, ['c']); // => {a : 1, b : 2}
 ```
 
 ### FAQ
@@ -51,5 +51,9 @@ Returns a new object, which has picked or omitted properties from the original o
 
     ```js
     postData({[key1] : o[key1], [key2] : o[key2]});
-    postData(o.pick([key1, key2])); 
+    postData(Object.pick(o, [key1, key2])); 
     ```
+
+3. Why can't be defined on the `Object.prototype` directly?
+
+    A: As `Object` is especially fundamental, and both of them will result in conflicts of properties of any other objects. In shorthand, if defined, any objects inherited from `Object` with `pick` or `omit` defined in its prototype should break.

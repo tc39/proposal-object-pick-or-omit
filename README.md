@@ -27,11 +27,14 @@ Returns a new object, which has picked or omitted properties from the object.
 ### Usage
 
 ```js
-Object.pick({a : 1, b : 2}, ['a']); // => {a : 1}
-Object.omit({a : 1, b : 2}, ['b']); // => {b : 1}
+Object.pick({a : 1, b : 2}, ['a']); // => {a: 1}
+Object.omit({a : 1, b : 2}, ['b']); // => {b: 1}
 
 Object.pick({a : 1, b : 2}, ['c']); // => {}
-Object.omit({a : 1, b : 2}, ['c']); // => {a : 1, b : 2}
+Object.omit({a : 1, b : 2}, ['c']); // => {a: 1, b: 2}
+
+Object.pick([], [Symbol.iterator]); // => {Symbol(Symbol.iterator): f}
+Object.pick([], ['length']); // => {length: 0}
 ```
 
 ### FAQ

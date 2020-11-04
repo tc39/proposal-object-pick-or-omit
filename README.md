@@ -44,8 +44,26 @@ Object.omit({a : 1, b : 2}, ['c']); // => {a : 1, b : 2}
     _.pick({a : 1}, ['toString']); // => {toString: f}
     _.omit({a : 1}, ['toString']).toString; // => ƒ toString() { [native code] }
     ```
+2. If some properties of an object is not accessible like throwing an error, can `Object.pick` or `Object.omit` operate such an object?
 
-2. In comparison with [**proposal-shorthand-improvements**](https://github.com/rbuckton/proposal-shorthand-improvements), when should we use these two methods?
+    A: I suggest throwing the error wrapped by `Object.pick` or `Object.omit`, but it is **NOT the final choice**:
+
+    ```js
+    Object.pick(Object.defineProperty({}, 'key', {
+	    get() { throw new Error() }
+    }), ['key']);
+    ```
+
+    The error stack will look like:
+
+    ```
+    Uncaught Error
+        at Object.get (<anonymous>:2:20)
+        at Object.pick (<anonymous>:2:10)
+        at <anonymous>:1:8 
+    ```
+
+3. In comparison with [**proposal-shorthand-improvements**](https://github.com/rbuckton/proposal-shorthand-improvements), when should we use these two methods?
 
     A: Multiple properties. Assume that we need to ensure an object without any side-effected keys except `key1` and `key2`:
 
@@ -54,6 +72,7 @@ Object.omit({a : 1, b : 2}, ['c']); // => {a : 1, b : 2}
     postData(Object.pick(o, [key1, key2])); 
     ```
 
-3. Why can't be defined on the `Object.prototype` directly?
+4. Why can't be defined on the `Object.prototype` directly?
 
     A: As `Object` is especially fundamental, and both of them will result in conflicts of properties of any other objects. In shorthand, if defined, any objects inherited from `Object` with `pick` or `omit` defined in its prototype should break.
+

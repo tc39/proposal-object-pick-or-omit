@@ -12,10 +12,10 @@ Spec drafted by [@Aleen](https://github.com/aleen42).
 
 ```
 Object.pick(obj, pickedKeys)
-Object.pickBy(obj, predictedFunction(currentValue[, key[, object]]))
+Object.pickBy(obj, predictedFunction(currentValue[, key[, object]])[, thisArg])
 
 Object.omit(obj, omittedKeys)
-Object.omitBy(obj, predictedFunction(currentValue[, key[, object]]))
+Object.omitBy(obj, predictedFunction(currentValue[, key[, object]])[, thisArg])
 ```
 
 #### Parameters
@@ -26,6 +26,7 @@ Object.omitBy(obj, predictedFunction(currentValue[, key[, object]]))
   - `currentValue`: the current value processed in the object.
   - `key`: the key of the `currentValue` in the object.
   - `object`: the object `pickBy` or `omitBy` was called upon.
+- `thisArg`: the object used as `this` inside the predicted function.
 
 #### Returns
 

@@ -1,6 +1,6 @@
-## `Object.pick` / `Object.omit`
+## `Object.{pick,pickBy}` / `Object.{omit,omitBy}`
 
-ECMAScript Proposal, specs, and reference implementation for `Object.pick` and `Object.omit`.
+ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.pickBy`, `Object.omit`, and `Object.omitBy`.
 
 Spec drafted by [@Aleen](https://github.com/aleen42).
 
@@ -12,13 +12,20 @@ Spec drafted by [@Aleen](https://github.com/aleen42).
 
 ```
 Object.pick(obj, pickedKeys)
-Object.omit(obj, omittedKeys) 
+Object.pickBy(obj, predictedFunction(currentValue[, key[, object]]))
+
+Object.omit(obj, omittedKeys)
+Object.omitBy(obj, predictedFunction(currentValue[, key[, object]]))
 ```
 
 #### Parameters
 
 - `pickedKeys`: keys of properties you want to pick from the object.
 - `omittedKeys`: keys of properties you want to pick from the object.
+- `predictedFunction`: the function to predicted whether the property should be picked or omitted.
+  - `currentValue`: the current value processed in the object.
+  - `key`: the key of the `currentValue` in the object.
+  - `object`: the object `pickBy` or `omitBy` was called upon.
 
 #### Returns
 
@@ -35,6 +42,11 @@ Object.omit({a : 1, b : 2}, ['c']); // => {a: 1, b: 2}
 
 Object.pick([], [Symbol.iterator]); // => {Symbol(Symbol.iterator): f}
 Object.pick([], ['length']); // => {length: 0}
+
+Object.pickBy({a : 1, b : 2}, v => v === 1); // => {a: 1}
+Object.omitBy({a : 1, b : 2}, v => v === 2); // => {a: 1}
+Object.pickBy({a : 1, b : 2}, (v, k) => k === 'a'); // => {a: 1}
+Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
 ```
 
 ### FAQ

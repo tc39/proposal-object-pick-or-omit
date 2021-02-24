@@ -21,8 +21,8 @@ Object.omitBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]]
 #### Parameters
 
 - `obj`: which object you want to pick or omit.
-- `pickedKeys` (**optional**): keys of properties you want to pick from the object. The default value is empty array.
-- `omittedKeys` (**optional**): keys of properties you want to pick from the object. The default value is empty array.
+- `pickedKeys` (**optional**): keys of properties you want to pick from the object. The default value is an empty array.
+- `omittedKeys` (**optional**): keys of properties you want to pick from the object. The default value is an empty array.
 - `predictedFunction` (**optional**): the function to predicted whether the property should be picked or omitted. The default value is an identity: `x => x`.
   - `currentValue`: the current value processed in the object.
   - `key`: the key of the `currentValue` in the object.
@@ -104,7 +104,7 @@ Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
     Object.omit({}, [symbol])[symbol]; // => "test", cannot omit properties from the prototype
     ```
 
-4. If some properties of an object is not accessible like throwing an error, can `Object.pick` or `Object.omit` operate such an object?
+4. If some properties of an object are not accessible like throwing an error, can `Object.pick` or `Object.omit` operate such an object?
 
     A: I suggest throwing the error wrapped by `Object.pick` or `Object.omit`, but it is **NOT the final choice**:
 
@@ -114,7 +114,7 @@ Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
     }), ['key']);
     ```
 
-    The error stack will look like:
+    The error stack will look like this:
 
     ```
     Uncaught Error

@@ -11,22 +11,23 @@ Spec drafted by [@Aleen](https://github.com/aleen42).
 ### Syntax
 
 ```
-Object.pick(obj, pickedKeys)
-Object.pickBy(obj, predictedFunction(currentValue[, key[, object]])[, thisArg])
+Object.pick(obj[, pickedKeys])
+Object.pickBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]])
 
-Object.omit(obj, omittedKeys)
-Object.omitBy(obj, predictedFunction(currentValue[, key[, object]])[, thisArg])
+Object.omit(obj[, omittedKeys])
+Object.omitBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]])
 ```
 
 #### Parameters
 
-- `pickedKeys`: keys of properties you want to pick from the object.
-- `omittedKeys`: keys of properties you want to pick from the object.
-- `predictedFunction`: the function to predicted whether the property should be picked or omitted.
+- `obj`: which object you want to pick or omit.
+- `pickedKeys` (**optional**): keys of properties you want to pick from the object. The default value is empty array.
+- `omittedKeys` (**optional**): keys of properties you want to pick from the object. The default value is empty array.
+- `predictedFunction` (**optional**): the function to predicted whether the property should be picked or omitted. The default value is an identity: `x => x`.
   - `currentValue`: the current value processed in the object.
   - `key`: the key of the `currentValue` in the object.
   - `object`: the object `pickBy` or `omitBy` was called upon.
-- `thisArg`: the object used as `this` inside the predicted function.
+- `thisArg` (**optional**): the object used as `this` inside the predicted function.
 
 #### Returns
 
@@ -35,6 +36,14 @@ Returns a new object, which has picked or omitted properties from the object.
 ### Usage
 
 ```js
+// default
+Object.pick({a : 1}); // => {}
+Object.omit({a : 1}); // => {a: 1}
+Object.pickBy({a : 0, b : 1}); // => {b: 1}
+Object.omitBy({a : 0, b : 1}); // => {a: 0}
+Object.pickBy({}, function () { console.log(this) }); // => the object itself
+Object.pickBy({}, function () { console.log(this) }, window); // => Window
+
 Object.pick({a : 1, b : 2}, ['a']); // => {a: 1}
 Object.omit({a : 1, b : 2}, ['b']); // => {b: 1}
 

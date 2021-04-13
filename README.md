@@ -77,6 +77,13 @@ Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
     Object.omit({}, ['__proto__']).__proto__; // => {...} 
     ```
 
+    In some opinions, picking off or omitting properties from the prototype chain should make the method more extendable:
+
+    ```js
+    const pickOwn = (obj, keys) => Object.pick(obj, keys.filter(key => obj.hasOwnProperty(key)));
+    const omitOwn = (obj, keys) => Object.omit(obj, keys.filter(key => obj.hasOwnProperty(key)));
+    ```
+
 2. What is the type of the returned value?
 
     A: All these methods should return plain objects:
@@ -136,3 +143,4 @@ Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
 
     A: As `Object` is especially fundamental, and both of them will result in conflicts of properties of any other objects. In shorthand, if defined, any objects inherited from `Object` with `pick` or `omit` defined in its prototype should break.
 
+***Notice: If you have any suggestions or ideas about this proposal? Appreciate your discussions via issues.***

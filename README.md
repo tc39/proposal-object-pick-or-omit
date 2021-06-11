@@ -6,7 +6,7 @@ Spec drafted by [@Aleen](https://github.com/aleen42).
 
 ### Motivation
 
-- To operate an object convenient by picking or omitting its properties, described in [the group](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
+To operate an object convenient by picking or omitting its properties, described in [the group](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
 
 ### Syntax
 
@@ -31,7 +31,7 @@ Object.omitBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]]
 
 #### Returns
 
-Returns a new object, which has picked or omitted properties from the object.
+- Returns a new object, which has picked or omitted properties from the object.
 
 ### Usage
 
@@ -58,6 +58,22 @@ Object.omitBy({a : 1, b : 2}, v => v === 2); // => {a: 1}
 Object.pickBy({a : 1, b : 2}, (v, k) => k === 'a'); // => {a: 1}
 Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
 ```
+
+### Visions
+
+1. A syntax sugar in the case of picking:
+
+    To extend the motivation of this proposal, there may be some syntax notations as an alternative of picking properties from objects, like the proposal, [proposal-slice-notation](https://github.com/tc39/proposal-slice-notation):
+
+    ```js
+    ({a : 1, b : 2, c : 3}).['a', 'b'] // => {a : 1, b : 2}
+
+    const keys = ['a', 'b'];
+    ({a : 1, b : 2, c : 3}).[keys[0]] // => {a : 1}
+    ({a : 1, b : 2, c : 3}).[...keys] // => {a : 1, b : 2}
+    ```
+
+    Nevertheless, it is just a simple vision, and feel free to discuss.
 
 ### FAQ
 

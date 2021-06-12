@@ -65,13 +65,40 @@ Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
 
     To extend the motivation of this proposal, there may be some syntax notations as an alternative of picking properties from objects, like the proposal, [proposal-slice-notation](https://github.com/tc39/proposal-slice-notation):
 
-    ```js
-    ({a : 1, b : 2, c : 3}).['a', 'b'] // => {a : 1, b : 2}
+    There are two ideas around how to wrap picking keys:
 
-    const keys = ['a', 'b'];
-    ({a : 1, b : 2, c : 3}).[keys[0]] // => {a : 1}
-    ({a : 1, b : 2, c : 3}).[...keys] // => {a : 1, b : 2}
-    ```
+    - square brackets:
+
+        ```js
+        ({a : 1, b : 2, c : 3}).['a', 'b']; // => {a : 1, b : 2}
+
+        const keys = ['a', 'b'];
+        ({a : 1, b : 2, c : 3}).[keys[0], keys[1]]; // => {a : 1, b : 2}
+        ({a : 1, b : 2, c : 3}).[...keys]; // => {a : 1, b : 2}
+        ```
+
+    - curly brackets
+
+        ```js
+        ({a : 1, b : 2, c : 3}).{a, b} // => {a : 1, b : 2}
+
+        const keys = ['a', 'b'];
+        ({a : 1, b : 2, c : 3}).{[keys[0]], b}; // => {a : 1}
+        ({a : 1, b : 2, c : 3}).{[...keys]}; // => {a : 1, b : 2}
+
+        // Similar to destructuring
+        ({a : 1, b : 2, c : 3}).{a, b : B}; // => {a : 1, B : 2}
+        ```
+
+        Currently there is a disagreement whether properties with default assignment value should be picked.
+
+        ```js
+        // If considering the meaning of picking, the initial value has no meanings
+        ({a : 1, b : 2, c : 3}).{a, d = 2}; // => {a : 1}
+
+        // If considering as "restructuring", the shortcut has its reason to pick
+        ({a : 1, b : 2, c : 3}).{a, d = 2}; // => {a : 1, d : 2}
+        ```
 
     Nevertheless, it is just a simple vision, and feel free to discuss.
 

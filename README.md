@@ -113,7 +113,7 @@ Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
     Object.omit({a : 1}, ['toString']).toString; // => ƒ toString() { [native code] }
     ```
 
-    The same rule applies to the `__proto__`:
+    The same rule applies to `__proto__ event if it has been [deprecated](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto), because the proposal should be pure enough to not specify a special logic to eliminate deprecated properties:
 
     ```js
     Object.pick({}, ['__proto__']); // => {__proto__: {...}}

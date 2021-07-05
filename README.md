@@ -1,6 +1,6 @@
-## `Object.{pick,pickBy}` / `Object.{omit,omitBy}`
+## `Object.{pick, omit, pickBy}`
 
-ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.pickBy`, `Object.omit`, and `Object.omitBy`.
+ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.omit`, and `Object.pickBy`.
 
 Spec drafted by [@Aleen](https://github.com/aleen42).
 
@@ -12,10 +12,8 @@ To operate an object convenient by picking or omitting its properties, described
 
 ```
 Object.pick(obj[, pickedKeys])
-Object.pickBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]])
-
 Object.omit(obj[, omittedKeys])
-Object.omitBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]])
+Object.pickBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]])
 ```
 
 #### Parameters
@@ -26,7 +24,7 @@ Object.omitBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]]
 - `predictedFunction` (**optional**): the function to predicted whether the property should be picked or omitted. The default value is an identity: `x => x`.
   - `currentValue`: the current value processed in the object.
   - `key`: the key of the `currentValue` in the object.
-  - `object`: the object `pickBy` or `omitBy` was called upon.
+  - `object`: the object `pickBy` was called upon.
 - `thisArg` (**optional**): the object used as `this` inside the predicted function.
 
 #### Returns
@@ -40,7 +38,7 @@ Object.omitBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]]
 Object.pick({a : 1}); // => {}
 Object.omit({a : 1}); // => {a: 1}
 Object.pickBy({a : 0, b : 1}); // => {b: 1}
-Object.omitBy({a : 0, b : 1}); // => {a: 0}
+Object.pickBy({a : 0, b : 1}, v => !v); // => {a: 0}
 Object.pickBy({}, function () { console.log(this) }); // => the object itself
 Object.pickBy({}, function () { console.log(this) }, window); // => Window
 
@@ -54,9 +52,9 @@ Object.pick([], [Symbol.iterator]); // => {Symbol(Symbol.iterator): f}
 Object.pick([], ['length']); // => {length: 0}
 
 Object.pickBy({a : 1, b : 2}, v => v === 1); // => {a: 1}
-Object.omitBy({a : 1, b : 2}, v => v === 2); // => {a: 1}
+Object.pickBy({a : 1, b : 2}, v => v !== 2); // => {a: 1}
 Object.pickBy({a : 1, b : 2}, (v, k) => k === 'a'); // => {a: 1}
-Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
+Object.pickBy({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
 ```
 
 ### Visions
@@ -90,7 +88,7 @@ Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
         ({a : 1, b : 2, c : 3}).{a, b : B}; // => {a : 1, B : 2}
         ```
 
-        Currently there is a disagreement whether properties with default assignment value should be picked.
+        Currently, there is a disagreement on whether properties with default assignment values should be picked.
 
         ```js
         // If considering the meaning of picking, the initial value has no meanings
@@ -160,7 +158,7 @@ Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
 
     ```js
     Object.pick(Object.defineProperty({}, 'key', {
-	    get() { throw new Error() }
+       get() { throw new Error() }
     }), ['key']);
     ```
 
@@ -185,5 +183,16 @@ Object.omitBy({a : 1, b : 2}, (v, k) => k === 'b'); // => {a: 1}
 6. Why can't be defined on the `Object.prototype` directly?
 
     A: As `Object` is especially fundamental, and both of them will result in conflicts of properties of any other objects. In shorthand, if defined, any objects inherited from `Object` with `pick` or `omit` defined in its prototype should break.
+
+7. Why not define filtered methods corresponding to two actions: [`pickBy`](https://lodash.com/docs/4.17.15#pickBy) and [`omitBy`](https://lodash.com/docs/4.17.15#omitBy) like Lodash?
+
+    A: It is [unnecessary](https://github.com/aleen42/proposal-object-pick-or-omit/issues/2#issuecomment-873200418), because the passing filtered method can be easily reversed with equal meaning:
+
+    ```js
+    Object.pickBy({a : 1, b : 2}, v => v);
+
+    // Equivalent to the following:
+    Object.omitBy({a: 1, b : 2}, v => !v);
+    ```
 
 ***Notice: If you have any suggestions or ideas about this proposal? Appreciate your discussions via issues.***

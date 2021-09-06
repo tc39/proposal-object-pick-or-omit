@@ -43,7 +43,7 @@ Object.pickBy({}, function () { console.log(this) }); // => the object itself
 Object.pickBy({}, function () { console.log(this) }, window); // => Window
 
 Object.pick({a : 1, b : 2}, ['a']); // => {a: 1}
-Object.omit({a : 1, b : 2}, ['b']); // => {b: 1}
+Object.omit({a : 1, b : 2}, ['b']); // => {a: 1}
 
 Object.pick({a : 1, b : 2}, ['c']); // => {}
 Object.omit({a : 1, b : 2}, ['c']); // => {a: 1, b: 2}

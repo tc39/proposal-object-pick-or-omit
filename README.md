@@ -1,6 +1,6 @@
-## `Object.{pick, omit, pickBy}`
+## `Object.{pick, omit}`
 
-ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.omit`, and `Object.pickBy`.
+ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.omit`.
 
 Spec drafted by [@Aleen](https://github.com/aleen42).
 
@@ -11,9 +11,8 @@ To operate an object convenient by picking or omitting its properties, described
 ### Syntax
 
 ```
-Object.pick(obj[, pickedKeys])
-Object.omit(obj[, omittedKeys])
-Object.pickBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]])
+Object.pick(obj[, pickedKeys | predictedFunction(currentValue[, key[, object]])[, thisArg])
+Object.omit(obj[, omittedKeys | predictedFunction(currentValue[, key[, object]])[, thisArg])
 ```
 
 #### Parameters
@@ -24,7 +23,7 @@ Object.pickBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]]
 - `predictedFunction` (**optional**): the function to predicted whether the property should be picked or omitted. The default value is an identity: `x => x`.
   - `currentValue`: the current value processed in the object.
   - `key`: the key of the `currentValue` in the object.
-  - `object`: the object `pickBy` was called upon.
+  - `object`: the object `pick` was called upon.
 - `thisArg` (**optional**): the object used as `this` inside the predicted function.
 
 #### Returns
@@ -37,10 +36,10 @@ Object.pickBy(obj[, predictedFunction(currentValue[, key[, object]])[, thisArg]]
 // default
 Object.pick({a : 1}); // => {}
 Object.omit({a : 1}); // => {a: 1}
-Object.pickBy({a : 0, b : 1}); // => {b: 1}
-Object.pickBy({a : 0, b : 1}, v => !v); // => {a: 0}
-Object.pickBy({}, function () { console.log(this) }); // => the object itself
-Object.pickBy({}, function () { console.log(this) }, window); // => Window
+Object.pick({a : 0, b : 1}, v => v); // => {b: 1}
+Object.pick({a : 0, b : 1}, v => !v); // => {a: 0}
+Object.pick({}, function () { console.log(this) }); // => the object itself
+Object.pick({}, function () { console.log(this) }, window); // => Window
 
 Object.pick({a : 1, b : 2}, ['a']); // => {a: 1}
 Object.omit({a : 1, b : 2}, ['b']); // => {a: 1}
@@ -51,10 +50,10 @@ Object.omit({a : 1, b : 2}, ['c']); // => {a: 1, b: 2}
 Object.pick([], [Symbol.iterator]); // => {Symbol(Symbol.iterator): f}
 Object.pick([], ['length']); // => {length: 0}
 
-Object.pickBy({a : 1, b : 2}, v => v === 1); // => {a: 1}
-Object.pickBy({a : 1, b : 2}, v => v !== 2); // => {a: 1}
-Object.pickBy({a : 1, b : 2}, (v, k) => k === 'a'); // => {a: 1}
-Object.pickBy({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
+Object.pick({a : 1, b : 2}, v => v === 1); // => {a: 1}
+Object.pick({a : 1, b : 2}, v => v !== 2); // => {a: 1}
+Object.pick({a : 1, b : 2}, (v, k) => k === 'a'); // => {a: 1}
+Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
 ```
 
 ### Visions
@@ -186,10 +185,12 @@ Object.pickBy({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
 
 7. Why not define filtered methods corresponding to two actions: [`pickBy`](https://lodash.com/docs/4.17.15#pickBy) and [`omitBy`](https://lodash.com/docs/4.17.15#omitBy) like Lodash?
 
-    A: It is [unnecessary](https://github.com/aleen42/proposal-object-pick-or-omit/issues/2#issuecomment-873200418), because the passing filtered method can be easily reversed with equal meaning:
+    A: It is [unnecessary](https://github.com/aleen42/proposal-object-pick-or-omit/issues/2) to double two methods, because it can be combined into the argument instead:
+
+    Besides, the passing filtered method can be easily reversed with equal meaning, and it means that `omitBy` can be easily defined as `pickBy`'s inverse.
 
     ```js
-    Object.pickBy({a : 1, b : 2}, v => v);
+    Object.pick({a : 1, b : 2}, v => v);
 
     // Equivalent to the following:
     Object.omitBy({a: 1, b : 2}, v => !v);

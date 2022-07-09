@@ -18,7 +18,7 @@ Let us consider few scenarios from the real would to understand what we are tryi
 
 Well, you see life is all about `pick`ing what we want and `omit`ing what we don't! 
 
-Would life be easier if the language provided a convinent method to help us during similar scenarios?
+Would life be easier if the language provided a convenient method to help us during similar scenarios?
 
 Now, one might argue saying we can implement `pick` and `omit` as below:
 

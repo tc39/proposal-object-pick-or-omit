@@ -34,7 +34,7 @@ const { authKey, ...toLog } = userInfo;
 ```
 
 ```js
-const omit = keys => Object.fromEntries(
+const omit = (obj, keys) => Object.fromEntries(
     keys.map(k => !obj.hasOwnProperty(k) && [k, obj[k]]).filter(x => x)
 );
 ```

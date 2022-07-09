@@ -15,6 +15,7 @@ Let us consider few scenarios from the real would to understand what we are tryi
 * Say we have a `depsObject` and we need to ignore all `@internal/packages` from it.
 * We have `props` from which we need to remove `[‘_csrf’, ‘_method’]`
 * We need to construct a `newModelData` by removing `action.deleted` from `({ ...state.models, ...action.update })`
+* Filtering configuration objects when the filter list is given by a `CLI` argument.
 
 Well, you see life is all about `pick`ing what we want and `omit`ing what we don't! 
 

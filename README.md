@@ -48,7 +48,7 @@ We can read more about such use-cases and challenges in [es.discourse](https://e
 
 With that in mind would it not be easier if we had `Object.pick` and `Object.omit` static methods?!
 
-Let us now discuss about what the sytanx of such useful method would be?
+Let us now discuss about what the API of such a useful method would be?
 
 ### Syntax
 

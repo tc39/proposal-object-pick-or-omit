@@ -23,7 +23,7 @@ Would life be easier if the language provided a convenient method to help us dur
 Now, one might argue saying we can implement `pick` and `omit` as below:
 
 ```js
-const pick = keys => Object.fromEntries(
+const pick = (obj, keys) => Object.fromEntries(
     keys.map(k => obj.hasOwnProperty(k) && [k, obj[k]]).filter(x => x)
 );
 

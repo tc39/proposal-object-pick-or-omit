@@ -5,7 +5,7 @@ Spec drafted by [@Aleen](https://github.com/aleen42).
 
 ### Motivation
 
-Let us consider few scenarios from the real would to understand what we are trying to solve in this propsoal. 
+Let us consider a few scenarios from the real world to understand what we are trying to solve in this proposal. 
 
 * On `MouseEvent` we are intreseted on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
 * We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it. 

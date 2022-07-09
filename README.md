@@ -1,12 +1,54 @@
 ## `Object.{pick, omit}`
-
-ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.omit`.
+> ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.omit`.
 
 Spec drafted by [@Aleen](https://github.com/aleen42).
 
 ### Motivation
 
-To operate an object convenient by picking or omitting its properties, described in [the group](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
+Let us consider few scenarios from the real would to understand what we are trying to solve in this propsoal. 
+
+* On `MouseEvent` we are intreseted on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
+* We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it. 
+* We have an `optionsBag`and we would allow on `['shell', 'env', 'extendEnv', 'uid', 'gid']` on it.
+* From a `req.body` we want to extract `['name', 'company', 'email', 'password']`
+* Checking if a component `shouldReload` by extracting `compareKeys` from `props` and compare it with `prevProps`. 
+* Say we have a `depsObject` and we need to ignore all `@internal/packages` from it.
+* We have `props` from which we need to remove `[‘_csrf’, ‘_method’]`
+* We need to construct a `newModelData` by removing `action.deleted` from `({ ...state.models, ...action.update })`
+
+Well, you see life is all about `pick`ing what we want and `omit`ing what we don't! 
+
+Would life be easier if the language provided a convinent method to help us during similar scenarios?
+
+Now, one might argue saying we can implement `pick` and `omit` as below:
+
+```js
+const pick = keys => Object.fromEntries(
+    keys.map(k => obj.hasOwnProperty(k) && [k, obj[k]]).filter(x => x)
+);
+
+/*
+We can also use a Destructuring assignment
+const { authKey, ...toLog } = userInfo;
+*/
+```
+
+```js
+const omit = keys => Object.fromEntries(
+    keys.map(k => !obj.hasOwnProperty(k) && [k, obj[k]]).filter(x => x)
+);
+```
+
+The major challenges we see with the above implementations:
+
+* It is not ergonomic 
+* We can't omit for unknown values
+
+We can read more about such use-cases and challenges in [es.discourse](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
+
+With that in mind would it not be easier if we had `Object.pick` and `Object.omit` static methods?!
+
+Let us now discuss about what the sytanx of such useful method would be?
 
 ### Syntax
 

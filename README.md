@@ -42,9 +42,15 @@ const omit = (obj, keys) => Object.fromEntries(
 The major challenges we see with the above implementations:
 
 * It is not ergonomic 
-* We can't omit for unknown values
+* We can't omit for unknown values (with destructuring)
 
-We can read more about such use-cases and challenges in [es.discourse](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
+We can read more about such use-cases and challenges from `es.discourse` below:
+
+* [Object.{pick,omit}](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
+* [Object restructuring syntax](https://es.discourse.group/t/object-restructuring-syntax/651)
+* [Object Array Pick](https://es.discourse.group/t/object-array-pick/992)
+* [js-pick-notation](https://github.com/rtm/js-pick-notation)
+* [slect multiple object values](https://es.discourse.group/t/set-multiple-object-values-a-b-undefined/1052/3)
 
 With that in mind would it not be easier if we had `Object.pick` and `Object.omit` static methods?!
 

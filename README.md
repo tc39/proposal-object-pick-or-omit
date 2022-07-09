@@ -1,12 +1,65 @@
 ## `Object.{pick, omit}`
-
-ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.omit`.
+> ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.omit`.
 
 Spec drafted by [@Aleen](https://github.com/aleen42).
 
 ### Motivation
 
-To operate an object convenient by picking or omitting its properties, described in [the group](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
+Let us consider a few scenarios from the real world to understand what we are trying to solve in this proposal. 
+
+* On `MouseEvent` we are intreseted on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
+* We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it. 
+* We have an `optionsBag`and we would allow on `['shell', 'env', 'extendEnv', 'uid', 'gid']` on it.
+* From a `req.body` we want to extract `['name', 'company', 'email', 'password']`
+* Checking if a component `shouldReload` by extracting `compareKeys` from `props` and compare it with `prevProps`. 
+* Say we have a `depsObject` and we need to ignore all `@internal/packages` from it.
+* We have `props` from which we need to remove `[‘_csrf’, ‘_method’]`
+* We need to construct a `newModelData` by removing `action.deleted` from `({ ...state.models, ...action.update })`
+* Filtering configuration objects when the filter list is given by a `CLI` argument.
+
+Well, you see life is all about `pick`ing what we want and `omit`ing what we don't! 
+
+Would life be easier if the language provided a convenient method to help us during similar scenarios?
+
+Now, one might argue saying we can implement `pick` and `omit` as below:
+
+```js
+const pick = (obj, keys) => Object.fromEntries(
+    keys.map(k => obj.hasOwnProperty(k) && [k, obj[k]]).filter(x => x)
+);
+
+/*
+We can also use a Destructuring assignment
+const { authKey, ...toLog } = userInfo;
+*/
+```
+
+```js
+const omit = (obj, keys) => Object.fromEntries(
+    keys.map(k => !obj.hasOwnProperty(k) && [k, obj[k]]).filter(x => x)
+);
+```
+
+The major challenges we see with the above implementations:
+
+* It is not ergonomic!
+* If we opt for the destructuring way it doesn't work at all for `pick`, or for `omit` with dynamic values.
+* Destructuring cannot `clone` a new object while `Object.pick` can
+* Destructuring cannot `pick` up properties from the `prototype` while `Object.pick` can
+* Destructuring cannot `pick` properties dynamically, while `Object.pick` can
+* Destructuring cannot `omit` some properties, and we can only `clone` and `delete` without this proposal
+
+We can read more about such use-cases and challenges from `es.discourse` below:
+
+* [Object.{pick,omit}](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
+* [Object restructuring syntax](https://es.discourse.group/t/object-restructuring-syntax/651)
+* [Object Array Pick](https://es.discourse.group/t/object-array-pick/992)
+* [js-pick-notation](https://github.com/rtm/js-pick-notation)
+* [slect multiple object values](https://es.discourse.group/t/set-multiple-object-values-a-b-undefined/1052/3)
+
+With that in mind would it not be easier if we had `Object.pick` and `Object.omit` static methods?!
+
+Let us now discuss what the API of such a helpful method would be?
 
 ### Syntax
 

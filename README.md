@@ -41,8 +41,8 @@ const omit = (obj, keys) => Object.fromEntries(
 
 The major challenges we see with the above implementations:
 
-* It is not ergonomic 
-* We can't omit for unknown values (with destructuring)
+* It is not ergonomic!
+* If we opt the destructuring way it doesn't work at all for `pick`, or for `omit` with dynamic values.
 
 We can read more about such use-cases and challenges from `es.discourse` below:
 

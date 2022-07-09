@@ -44,6 +44,10 @@ The major challenges we see with the above implementations:
 
 * It is not ergonomic!
 * If we opt for the destructuring way it doesn't work at all for `pick`, or for `omit` with dynamic values.
+* Destructuring cannot `clone` a new object while `Object.pick` can
+* Destructuring cannot `pick` up properties from the `prototype` while `Object.pick` can
+* Destructuring cannot `pick` properties dynamically, while `Object.pick` can
+* Destructuring cannot `omit` some properties, and we can only `clone` and `delete` without this proposal
 
 We can read more about such use-cases and challenges from `es.discourse` below:
 

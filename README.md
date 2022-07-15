@@ -104,7 +104,7 @@ Object.omit({a : 1, b : 2}, ['b']); // => {a: 1}
 Object.pick({a : 1, b : 2}, ['c']); // => {}
 Object.omit({a : 1, b : 2}, ['c']); // => {a: 1, b: 2}
 
-Object.pick([], [Symbol.iterator]); // => {Symbol(Symbol.iterator): f}
+Object.pick([], [Symbol.iterator]); // => Array.prototype[Symbol.iterator]
 Object.pick([], ['length']); // => {length: 0}
 
 Object.pick({a : 1, b : 2}, v => v === 1); // => {a: 1}
@@ -158,20 +158,34 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
 
 ### FAQ
 
-1. When it comes to the prototype chain of an object, should the method pick or omit it? (The answer may change)
+1. When it comes to the prototype chain of an object, should the method pick or omit it?
 
-    A: The implementation of [`_.pick`](https://lodash.com/docs/4.17.15#pick) and [`_.omit`](https://lodash.com/docs/4.17.15#omit) by Lodash has taken care about the chain. To keep the rule, we can pick off properties of the prototype, but can't omit them:
+    A: Consistent with destructuring: we can explicitly pick off properties of the prototype, but avoid omitting them.
 
     ```js
     Object.pick({a : 1}, ['toString']); // => {toString: f}
+    // equivalent to the behavior
+    const {toString} = {a : 1};
+    toString; // => f toString() { [native code] }
+
+    // avoid omitting properties which are not owned
     Object.omit({a : 1}, ['toString']).toString; // => ƒ toString() { [native code] }
     ```
+
+    The implementation of [`_.pick`](https://lodash.com/docs/4.17.15#pick) and [`_.omit`](https://lodash.com/docs/4.17.15#omit) by Lodash has also taken care about the chain.
 
     The same rule applies to `__proto__` event if it has been [deprecated](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto) because the proposal should be pure enough to not specify a special logic to eliminate deprecated properties:
 
     ```js
-    Object.pick({}, ['__proto__']); // => {__proto__: {...}}
-    Object.omit({}, ['__proto__']).__proto__; // => {...} 
+    Object.pick({}, ['__proto__']); // => {__proto__: Object.prototype}
+    // equivalent to the behavior
+    const {__proto__} = {};
+    __proto__; // => Object.prototype
+
+    Object.omit({}, ['__proto__']).__proto__; // => Object.prototype
+    // equivalent to the behavior
+    const {__proto__, ...res} = {}
+    res.__proto__; // => Object.prototype
     ```
 
     In some opinions, picking off or omitting properties from the prototype chain should make the method more extendable:
@@ -183,39 +197,68 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
 
 2. What is the type of returned value?
 
-    A: All these methods should return plain objects:
+    A: Consistent with destructuring: should return plain objects.
 
     ```js
-    Object.pick([]); // => {} 
+    Object.pick([]); // => {}
     Object.omit([]); // => {}
-    Object.pick(new Map()); // => {} 
+    Object.pick(new Map()); // => {}
     Object.omit(new Map()); // => {}
+    
+    // equivalent to the behavior
+    const {...res} = [];
+    res instanceof Array; // => false
+    const {...res} = new Map();
+    res instanceof Map; // => false
+    const {...res} = new Set();
+    res instanceof Set; // => false
     ```
 
 3. How to handle `Symbol`?
 
-    A: `Symbol` should just be considered as properties within `Symbol` keys, and they should obey the rules mentioned above:
+    A: Consistent with destructuring.
 
     ```js
-    Object.pick([], [Symbol.iterator]); // => {Symbol(Symbol.iterator): f}, pick off from the prototype
+    Object.pick([], [Symbol.iterator]); // => Array.prototype[Symbol.iterator], pick off from the prototype
+    // equivalent to the behavior
+    const {[Symbol.iterator] : iter} = [];
+    iter; // => Array.prototype[Symbol.iterator]
+    
     Object.omit([], [Symbol.iterator]); // => {}, plain objects
+    // equivalent to the behavior
+    const {[Symbol.iterator] : iter, ...res} = [];
+    res instanceof Array; // => false
     
     const symbol = Symbol('key');
     Object.omit({a : 1, [symbol]: 2}, [symbol]); // => {a : 1}
+    // equivalent to the behavior
+    const {[symbol] : _, ...res} = {a : 1, [symbol]: 2};
+    res; // => {a : 1}
     
     Object.prototype[symbol] = 'test'; // override prototype
     Object.pick({}, [symbol]); // => {Symbol(key): "test"}, pick off from the prototype
     Object.omit({}, [symbol])[symbol]; // => "test", cannot omit properties from the prototype
+    // equivalent to the behavior
+    const {[symbol] : sym, ...res} = {};
+    sym; // => 'test'
+    res[symbol]; // => 'test'
     ```
 
 4. If some properties of an object are not accessible like throwing an error, can `Object.pick` or `Object.omit` operate such an object?
 
-    A: I suggest throwing the error wrapped by `Object.pick` or `Object.omit`, but it is **NOT the final choice**:
+    A: Consistent with destructuring: throw the error wrapped by `Object.pick` or `Object.omit`.
 
     ```js
     Object.pick(Object.defineProperty({}, 'key', {
-       get() { throw new Error() }
+       get() { throw new Error(); }
     }), ['key']);
+    // equivalent to the behavior
+    const o = Object.defineProperty({}, 'key', {
+      get() { throw new Error('custom'); }
+    });
+    try { const {key} = o; } catch (e) {
+       e.message // => 'custom'
+    }
     ```
 
     The error stack will look like this:

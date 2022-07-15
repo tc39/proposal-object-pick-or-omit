@@ -12,7 +12,7 @@ This proposal is currently [stage 1](https://github.com/tc39/proposals/blob/mast
 Let us consider a few scenarios from the real world to understand what we are trying to solve in this proposal.
 
 * On `MouseEvent` we are interested on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
-* We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it. 
+* We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it.
 * We have an `optionsBag`and we would allow on `['shell', 'env', 'extendEnv', 'uid', 'gid']` on it.
 * From a `req.body` we want to extract `['name', 'company', 'email', 'password']`
 * Checking if a component `shouldReload` by extracting `compareKeys` from `props` and compare it with `prevProps`.
@@ -77,7 +77,7 @@ Object.omit(obj[, omittedKeys | predictedFunction(currentValue[, key[, object]])
 - `obj`: which object you want to pick or omit.
 - `pickedKeys` (**optional**): keys of properties you want to pick from the object. The default value is an empty array.
 - `omittedKeys` (**optional**): keys of properties you want to pick from the object. The default value is an empty array.
-- `predictedFunction` (**optional**): the function to predicted whether the property should be picked or omitted. The default value is an identity: `x => x`.
+- `predictedFunction` (**optional**): the function to predict whether the property should be picked or omitted. The default value is an identity: `x => x`.
   - `currentValue`: the current value processed in the object.
   - `key`: the key of the `currentValue` in the object.
   - `object`: the object `pick` was called upon.
@@ -154,20 +154,20 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
         ({a : 1, b : 2, c : 3}).{a, d = 2}; // => {a : 1, d : 2}
         ```
 
-    Nevertheless, it is just a simple vision, and feel free to discuss.
+    Nevertheless, it is just a simple vision, and feel free to discuss it.
 
 ### FAQ
 
 1. When it comes to the prototype chain of an object, should the method pick or omit it? (The answer may change)
 
-    A: The implementation of [`_.pick`](https://lodash.com/docs/4.17.15#pick) and [`_.omit`](https://lodash.com/docs/4.17.15#omit) by Lodash has taken care about the chain. To keep the rule, we can pick off properties of prototype, but can't omit them:
+    A: The implementation of [`_.pick`](https://lodash.com/docs/4.17.15#pick) and [`_.omit`](https://lodash.com/docs/4.17.15#omit) by Lodash has taken care about the chain. To keep the rule, we can pick off properties of the prototype, but can't omit them:
 
     ```js
     Object.pick({a : 1}, ['toString']); // => {toString: f}
     Object.omit({a : 1}, ['toString']).toString; // => ƒ toString() { [native code] }
     ```
 
-    The same rule applies to `__proto__` event if it has been [deprecated](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto), because the proposal should be pure enough to not specify a special logic to eliminate deprecated properties:
+    The same rule applies to `__proto__` event if it has been [deprecated](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto) because the proposal should be pure enough to not specify a special logic to eliminate deprecated properties:
 
     ```js
     Object.pick({}, ['__proto__']); // => {__proto__: {...}}
@@ -181,7 +181,7 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
     const omitOwn = (obj, keys) => Object.omit(obj, keys.filter(key => obj.hasOwnProperty(key)));
     ```
 
-2. What is the type of the returned value?
+2. What is the type of returned value?
 
     A: All these methods should return plain objects:
 
@@ -238,11 +238,11 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
 
 6. Why can't be defined on the `Object.prototype` directly?
 
-    A: As `Object` is especially fundamental, and both of them will result in conflicts of properties of any other objects. In shorthand, if defined, any objects inherited from `Object` with `pick` or `omit` defined in its prototype should break.
+    A: As `Object` is especially fundamental, both of them will result in conflicts of properties of any other objects. In shorthand, if defined, any objects inherited from `Object` with `pick` or `omit` defined in its prototype should break.
 
 7. Why not define filtered methods corresponding to two actions: [`pickBy`](https://lodash.com/docs/4.17.15#pickBy) and [`omitBy`](https://lodash.com/docs/4.17.15#omitBy) like Lodash?
 
-    A: It is [unnecessary](https://github.com/aleen42/proposal-object-pick-or-omit/issues/2) to double two methods, because it can be combined into the argument instead:
+    A: It is [unnecessary](https://github.com/aleen42/proposal-object-pick-or-omit/issues/2) to double two methods because they can be combined into the argument instead:
 
     Besides, the passing filtered method can be easily reversed with equal meaning, and it means that `omitBy` can be easily defined as `pickBy`'s inverse.
 

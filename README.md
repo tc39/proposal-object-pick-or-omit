@@ -5,19 +5,19 @@ Spec drafted by [@Aleen](https://github.com/aleen42).
 
 ### Motivation
 
-Let us consider a few scenarios from the real world to understand what we are trying to solve in this proposal. 
+Let us consider a few scenarios from the real world to understand what we are trying to solve in this proposal.
 
 * On `MouseEvent` we are intreseted on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
-* We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it. 
+* We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it.
 * We have an `optionsBag`and we would allow on `['shell', 'env', 'extendEnv', 'uid', 'gid']` on it.
 * From a `req.body` we want to extract `['name', 'company', 'email', 'password']`
-* Checking if a component `shouldReload` by extracting `compareKeys` from `props` and compare it with `prevProps`. 
+* Checking if a component `shouldReload` by extracting `compareKeys` from `props` and compare it with `prevProps`.
 * Say we have a `depsObject` and we need to ignore all `@internal/packages` from it.
 * We have `props` from which we need to remove `[‘_csrf’, ‘_method’]`
 * We need to construct a `newModelData` by removing `action.deleted` from `({ ...state.models, ...action.update })`
 * Filtering configuration objects when the filter list is given by a `CLI` argument.
 
-Well, you see life is all about `pick`ing what we want and `omit`ing what we don't! 
+Well, you see life is all about `pick`ing what we want and `omit`ing what we don't!
 
 Would life be easier if the language provided a convenient method to help us during similar scenarios?
 
@@ -44,10 +44,11 @@ The major challenges we see with the above implementations:
 
 * It is not ergonomic!
 * If we opt for the destructuring way it doesn't work at all for `pick`, or for `omit` with dynamic values.
+
+So what props these methods have given us in comparison with destructuring?
+
 * Destructuring cannot `clone` a new object while `Object.pick` can
-* Destructuring cannot `pick` up properties from the `prototype` while `Object.pick` can
-* Destructuring cannot `pick` properties dynamically, while `Object.pick` can
-* Destructuring cannot `omit` some properties, and we can only `clone` and `delete` without this proposal
+* We can specify which properties to pick or omit by a list of keys or a predict method, while destructuring cannot
 
 We can read more about such use-cases and challenges from `es.discourse` below:
 

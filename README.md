@@ -104,7 +104,7 @@ Object.omit({a : 1, b : 2}, ['b']); // => {a: 1}
 Object.pick({a : 1, b : 2}, ['c']); // => {}
 Object.omit({a : 1, b : 2}, ['c']); // => {a: 1, b: 2}
 
-Object.pick([], [Symbol.iterator]); // => Array.prototype[Symbol.iterator]
+Object.pick([], [Symbol.iterator]); // => {Symbol(Symbol.iterator): Array.prototype[Symbol.iterator]}
 Object.pick([], ['length']); // => {length: 0}
 
 Object.pick({a : 1, b : 2}, v => v === 1); // => {a: 1}
@@ -124,34 +124,34 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
     - square brackets:
 
         ```js
-        ({a : 1, b : 2, c : 3}).['a', 'b']; // => {a : 1, b : 2}
+        ({a : 1, b : 2, c : 3}).['a', 'b']; // => {a: 1, b: 2}
 
         const keys = ['a', 'b'];
-        ({a : 1, b : 2, c : 3}).[keys[0], keys[1]]; // => {a : 1, b : 2}
-        ({a : 1, b : 2, c : 3}).[...keys]; // => {a : 1, b : 2}
+        ({a : 1, b : 2, c : 3}).[keys[0], keys[1]]; // => {a: 1, b: 2}
+        ({a : 1, b : 2, c : 3}).[...keys]; // => {a: 1, b: 2}
         ```
 
     - curly brackets
 
         ```js
-        ({a : 1, b : 2, c : 3}).{a, b} // => {a : 1, b : 2}
+        ({a : 1, b : 2, c : 3}).{a, b} // => {a: 1, b: 2}
 
         const keys = ['a', 'b'];
-        ({a : 1, b : 2, c : 3}).{[keys[0]], b}; // => {a : 1}
-        ({a : 1, b : 2, c : 3}).{[...keys]}; // => {a : 1, b : 2}
+        ({a : 1, b : 2, c : 3}).{[keys[0]], b}; // => {a: 1}
+        ({a : 1, b : 2, c : 3}).{[...keys]}; // => {a: 1, b: 2}
 
         // Similar to destructuring
-        ({a : 1, b : 2, c : 3}).{a, b : B}; // => {a : 1, B : 2}
+        ({a : 1, b : 2, c : 3}).{a, b : B}; // => {a: 1, B: 2}
         ```
 
         Currently, there is a disagreement on whether properties with default assignment values should be picked.
 
         ```js
         // If considering the meaning of picking, the initial value has no meanings
-        ({a : 1, b : 2, c : 3}).{a, d = 2}; // => {a : 1}
+        ({a : 1, b : 2, c : 3}).{a, d = 2}; // => {a: 1}
 
         // If considering as "restructuring", the shortcut has its reason to pick
-        ({a : 1, b : 2, c : 3}).{a, d = 2}; // => {a : 1, d : 2}
+        ({a : 1, b : 2, c : 3}).{a, d = 2}; // => {a: 1, d: 2}
         ```
 
     Nevertheless, it is just a simple vision, and feel free to discuss it.
@@ -163,7 +163,7 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
     A: Consistent with destructuring: we can explicitly pick off properties of the prototype, but we can't modify them by calling `Object.omit`.
 
     ```js
-    Object.pick([1, 2, 3], ['length']); // => {length : 3}
+    Object.pick([1, 2, 3], ['length']); // => {length: 3}
     // equivalent to the behavior
     const {length} = [1, 2, 3];
     length; // => 3
@@ -221,7 +221,7 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
     A: Consistent with destructuring.
 
     ```js
-    Object.pick([], [Symbol.iterator]); // => Array.prototype[Symbol.iterator], pick off from the prototype
+    Object.pick([], [Symbol.iterator]); // => {Symbol(Symbol.iterator): Array.prototype[Symbol.iterator]}, pick off from the prototype
     // equivalent to the behavior
     const {[Symbol.iterator] : iter} = [];
     iter; // => Array.prototype[Symbol.iterator]
@@ -232,7 +232,7 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
     res instanceof Array; // => false
     
     const symbol = Symbol('key');
-    Object.omit({a : 1, [symbol]: 2}, [symbol]); // => {a : 1}
+    Object.omit({a : 1, [symbol]: 2}, [symbol]); // => {a: 1}
     // equivalent to the behavior
     const {[symbol] : _, ...res} = {a : 1, [symbol]: 2};
     res; // => {a : 1}

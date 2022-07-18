@@ -283,7 +283,7 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
 
 6. Why can't be defined on the `Object.prototype` directly?
 
-    A: As `Object` is especially fundamental, both of them will result in conflicts of properties of any other objects. In shorthand, if defined, any objects inherited from `Object` with `pick` or `omit` defined in its prototype should break.
+    A: As `Object` is especially fundamental, both of them will result in conflicts of properties of any other objects. In shorthand, if defined, any objects inherited from `Object` with `pick` or `omit` defined in its prototype would break. Also, objects that inherit from `null` would be left unable to use this functionality.
 
 7. Why not define filtered methods corresponding to two actions: [`pickBy`](https://lodash.com/docs/4.17.15#pickBy) and [`omitBy`](https://lodash.com/docs/4.17.15#omitBy) like Lodash?
 

@@ -160,16 +160,18 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
 
 1. When it comes to the prototype chain of an object, should the method pick or omit it?
 
-    A: Consistent with destructuring: we can explicitly pick off properties of the prototype, but avoid omitting them.
+    A: Consistent with destructuring: we can explicitly pick off properties of the prototype, but we can't modify them by calling `Object.omit`.
 
     ```js
-    Object.pick({a : 1}, ['toString']); // => {toString: f}
+    Object.pick([1, 2, 3], ['length']); // => {length : 3}
     // equivalent to the behavior
-    const {toString} = {a : 1};
-    toString; // => f toString() { [native code] }
+    const {length} = [1, 2, 3];
+    length; // => 3
 
-    // avoid omitting properties which are not owned
-    Object.omit({a : 1}, ['toString']).toString; // => ƒ toString() { [native code] }
+    // cannot omit the prototype of an array by calling `Object.omit`
+    const arr = [1, 2, 3];
+    Object.omit(arr, ['length']);
+    arr.length; // => 3
     ```
 
     The implementation of [`_.pick`](https://lodash.com/docs/4.17.15#pick) and [`_.omit`](https://lodash.com/docs/4.17.15#omit) by Lodash has also taken care about the chain.
@@ -267,7 +269,7 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
     Uncaught Error
         at Object.get (<anonymous>:2:20)
         at Object.pick (<anonymous>:2:10)
-        at <anonymous>:1:8 
+        at <anonymous>:1:8
     ```
 
 5. In comparison with [**proposal-shorthand-improvements**](https://github.com/rbuckton/proposal-shorthand-improvements), when should we use these two methods?
@@ -276,7 +278,7 @@ Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
 
     ```js
     postData({[key1] : o[key1], [key2] : o[key2]});
-    postData(Object.pick(o, [key1, key2])); 
+    postData(Object.pick(o, [key1, key2]));
     ```
 
 6. Why can't be defined on the `Object.prototype` directly?

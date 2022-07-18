@@ -48,7 +48,7 @@ The major challenges we see with the above implementations:
 So what props these methods have given us in comparison with destructuring?
 
 * Destructuring cannot `clone` a new object while `Object.pick` can
-* We can specify which properties to pick or omit by a list of keys or a predict method, while destructuring cannot
+* We can specify which properties to pick or omit by a list of keys or a predicate method, while destructuring requires a hardcoded number of properties (although their names can be dynamic)
 
 We can read more about such use-cases and challenges from `es.discourse` below:
 

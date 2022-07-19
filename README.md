@@ -44,31 +44,8 @@ The major challenges we see with the above implementations:
 
 * It is not ergonomic!
 * If we opt for the destructuring way it doesn't work at all for `pick`, or for `omit` with dynamic values.
-
-So what props these methods have given us in comparison with destructuring?
-
 * Destructuring cannot `clone` a new object while `Object.pick` can
-    ```js
-    Object.pick({a : 1, b : 2}, ['a']); // => {a: 1}
-    
-    // when using destructuring
-    const {a} = {a : 1, b : 2};
-    {a}; // => {a: 1}
-    ```
-* We can specify which properties to pick or omit by a list of keys or a predicate method, while destructuring requires a hardcoded number of properties (although their names can be dynamic)
-    ```js
-    const input = {a : 1, b : 2, c : 3};  
-    Object.pick(input, ['a', 'b']); // => {a: 1, b: 2}
-    Object.pick(input, val => val < 3); // => {a: 1, b: 2}
-    
-    // when using destructuring
-    ['a', 'b'].reduce((obj, key) => {
-        const {[key] : value} = input;
-        return Object.assign(obj, {[key] : value});
-    }, {}); // => {a: 1, b: 2}
-    Object.entries(input).reduce((obj, [key, value]) =>
-        Object.assign(obj, value < 3 && {[key] : value}), {}); // => {a: 1, b: 2}
-    ```
+* Destructuring requires a hardcoded number of properties (although their names can be dynamic) to `pick` or `omit` properties, while `Object.pick` only requires a list of keys or a predicate method
 
 We can read more about such use-cases and challenges from `es.discourse` below:
 

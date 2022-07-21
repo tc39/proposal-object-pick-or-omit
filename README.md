@@ -1,7 +1,7 @@
 ## `Object.{pick, omit}`
 > ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.omit`.
 
-Spec drafted by [@Aleen](https://github.com/aleen42).
+__Authors:__ [@Aleen](https://github.com/aleen42) && [Hemanth HM](https://github.com/hemanth)
 
 ### Motivation
 

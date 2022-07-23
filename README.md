@@ -9,8 +9,8 @@ This proposal is currently [stage 1](https://github.com/tc39/proposals/blob/mast
 
 Let us consider a few scenarios from the real world to understand what we are trying to solve in this proposal.
 
-* On `MouseEvent` we are intreseted on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
-* We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it.
+* On `MouseEvent` we are interested on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
+* We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it. 
 * We have an `optionsBag`and we would allow on `['shell', 'env', 'extendEnv', 'uid', 'gid']` on it.
 * From a `req.body` we want to extract `['name', 'company', 'email', 'password']`
 * Checking if a component `shouldReload` by extracting `compareKeys` from `props` and compare it with `prevProps`.

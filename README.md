@@ -7,7 +7,7 @@ __Authors:__ [@Aleen](https://github.com/aleen42) && [Hemanth HM](https://github
 
 Let us consider a few scenarios from the real world to understand what we are trying to solve in this proposal. 
 
-* On `MouseEvent` we are intreseted on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
+* On `MouseEvent` we are interested on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
 * We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it. 
 * We have an `optionsBag`and we would allow on `['shell', 'env', 'extendEnv', 'uid', 'gid']` on it.
 * From a `req.body` we want to extract `['name', 'company', 'email', 'password']`

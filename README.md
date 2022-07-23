@@ -3,21 +3,23 @@
 
 __Authors:__ [@Aleen](https://github.com/aleen42) && [Hemanth HM](https://github.com/hemanth)
 
+This proposal is currently [stage 1](https://github.com/tc39/proposals/blob/master/README.md) of the [process](https://tc39.github.io/process-document/).
+
 ### Motivation
 
-Let us consider a few scenarios from the real world to understand what we are trying to solve in this proposal. 
+Let us consider a few scenarios from the real world to understand what we are trying to solve in this proposal.
 
 * On `MouseEvent` we are interested on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
 * We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it. 
 * We have an `optionsBag`and we would allow on `['shell', 'env', 'extendEnv', 'uid', 'gid']` on it.
 * From a `req.body` we want to extract `['name', 'company', 'email', 'password']`
-* Checking if a component `shouldReload` by extracting `compareKeys` from `props` and compare it with `prevProps`. 
+* Checking if a component `shouldReload` by extracting `compareKeys` from `props` and compare it with `prevProps`.
 * Say we have a `depsObject` and we need to ignore all `@internal/packages` from it.
 * We have `props` from which we need to remove `[‘_csrf’, ‘_method’]`
 * We need to construct a `newModelData` by removing `action.deleted` from `({ ...state.models, ...action.update })`
 * Filtering configuration objects when the filter list is given by a `CLI` argument.
 
-Well, you see life is all about `pick`ing what we want and `omit`ing what we don't! 
+Well, you see life is all about `pick`ing what we want and `omit`ing what we don't!
 
 Would life be easier if the language provided a convenient method to help us during similar scenarios?
 

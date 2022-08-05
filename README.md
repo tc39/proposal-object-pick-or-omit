@@ -3,6 +3,8 @@
 
 __Authors:__ [@Aleen](https://github.com/aleen42) && [Hemanth HM](https://github.com/hemanth)
 
+__Champion:__ [@js-choi](https://github.com/js-choi)
+
 This proposal is currently [stage 1](https://github.com/tc39/proposals/blob/master/README.md) of the [process](https://tc39.github.io/process-document/).
 
 ### Motivation

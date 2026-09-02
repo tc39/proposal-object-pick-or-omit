@@ -1,256 +1,231 @@
 ## `Object.{pick, omit}`
 > ECMAScript Proposal, specs, and reference implementation for `Object.pick`, `Object.omit`.
 
-__Authors:__ [@Aleen](https://github.com/aleen42) && [Hemanth HM](https://github.com/hemanth)
+__Authors:__ [@Aleen](https://github.com/aleen42) & [Hemanth HM](https://github.com/hemanth)
 
-__Champion:__ [@js-choi](https://github.com/js-choi)
+__Champions:__ [Hemanth HM](https://github.com/hemanth), [Jordan Harband](https://github.com/ljharb), [@js-choi](https://github.com/js-choi)
 
-This proposal is currently [stage 1](https://github.com/tc39/proposals/blob/master/README.md) of the [process](https://tc39.github.io/process-document/).
+This proposal is currently [Stage 1](https://github.com/tc39/proposals/blob/master/README.md) of the [TC39 Process](https://tc39.es/process-document/), presented at the [July 2022 TC39 meeting](https://github.com/tc39/notes/blob/main/meetings/2022-07/jul-21.md#ergonomic-dynamic-object-restructuring).
+
+---
 
 ### Motivation
 
-Let us consider a few scenarios from the real world to understand what we are trying to solve in this proposal.
+Creating new objects by picking or omitting specific properties from an existing object is one of the most common operations in modern JavaScript:
 
-* On `MouseEvent` we are interested on `'ctrlKey', 'shiftKey', 'altKey', 'metaKey'` events only.
-* We have a `configObject` and we need `['dependencies', 'devDependencies', 'peerDependencies']` from it. 
-* We have an `optionsBag`and we would allow on `['shell', 'env', 'extendEnv', 'uid', 'gid']` on it.
-* From a `req.body` we want to extract `['name', 'company', 'email', 'password']`
-* Checking if a component `shouldReload` by extracting `compareKeys` from `props` and compare it with `prevProps`.
-* Say we have a `depsObject` and we need to ignore all `@internal/packages` from it.
-* We have `props` from which we need to remove `[‘_csrf’, ‘_method’]`
-* We need to construct a `newModelData` by removing `action.deleted` from `({ ...state.models, ...action.update })`
-* Filtering configuration objects when the filter list is given by a `CLI` argument.
+* **Event handling:** On a `MouseEvent`, extracting only `['ctrlKey', 'shiftKey', 'altKey', 'metaKey']`.
+* **Config extraction:** From a `package.json` config object, picking `['dependencies', 'devDependencies', 'peerDependencies']`.
+* **Options bags:** Whitelisting `['shell', 'env', 'extendEnv', 'uid', 'gid']` from user input.
+* **HTTP / API payload filtering:** From `req.body`, extracting `['name', 'company', 'email', 'password']`.
+* **Component memoization / props diffing:** Extracting `compareKeys` from `props` and comparing them against `prevProps`.
+* **Sanitization:** Stripping sensitive or internal fields (e.g. `['_csrf', '_method']`, passwords, or tokens) before logging or persisting.
+* **Dynamic CLI flags:** Filtering configuration objects when the key list is supplied dynamically at runtime.
 
-Well, you see life is all about `pick`ing what we want and `omit`ing what we don't!
-
-Would life be easier if the language provided a convenient method to help us during similar scenarios?
-
-Now, one might argue saying we can implement `pick` and `omit` as below:
+Today, developers frequently reach for utility libraries such as Lodash (`_.pick`, `_.omit`, `_.pickBy`, `_.omitBy`), or hand-roll ad-hoc implementations:
 
 ```js
 const pick = (obj, keys) => Object.fromEntries(
-    keys.map(k => obj.hasOwnProperty(k) && [k, obj[k]]).filter(x => x)
+  keys.filter(k => k in obj).map(k => [k, obj[k]])
 );
 
-/*
-We can also use a Destructuring assignment
-const { authKey, ...toLog } = userInfo;
-*/
-```
-
-```js
 const omit = (obj, keys) => Object.fromEntries(
-    keys.map(k => !obj.hasOwnProperty(k) && [k, obj[k]]).filter(x => x)
+  Object.entries(obj).filter(([k]) => !keys.includes(k))
 );
 ```
 
-The major challenges we see with the above implementations:
+These ad-hoc approaches suffer from notable shortcomings:
+- **Ergonomics & boilerplate:** Verbose, repetitive, and error-prone.
+- **Performance:** Inefficient intermediate array allocations (`Object.entries`, `filter`, `fromEntries`).
+- **Edge cases:** Inconsistent handling of prototype properties, non-enumerable properties, symbol keys, and getters.
 
-* It is not ergonomic!
-* If we opt for the destructuring way it doesn't work at all for `pick`, or for `omit` with dynamic values.
-* Destructuring cannot `clone` a new object while `Object.pick` can
-* Destructuring cannot `pick` up properties from the `prototype` while `Object.pick` can
-* Destructuring cannot `pick` properties dynamically, while `Object.pick` can
-* Destructuring cannot `omit` some properties, and we can only `clone` and `delete` without this proposal
+---
 
-We can read more about such use-cases and challenges from `es.discourse` below:
+### The Problem Space: Static vs. Dynamic Restructuring
 
-* [Object.{pick,omit}](https://es.discourse.group/t/object-prototype-pick-object-prototype-omit/515).
-* [Object restructuring syntax](https://es.discourse.group/t/object-restructuring-syntax/651)
-* [Object Array Pick](https://es.discourse.group/t/object-array-pick/992)
-* [js-pick-notation](https://github.com/rtm/js-pick-notation)
-* [slect multiple object values](https://es.discourse.group/t/set-multiple-object-values-a-b-undefined/1052/3)
-
-With that in mind would it not be easier if we had `Object.pick` and `Object.omit` static methods?!
-
-Let us now discuss what the API of such a helpful method would be?
-
-### Syntax
+Feedback from the TC39 committee (July 2022 plenary) highlighted that object restructuring spans two distinct categories:
 
 ```
-Object.pick(obj[, pickedKeys | predictedFunction(currentValue[, key[, object]])[, thisArg])
-Object.omit(obj[, omittedKeys | predictedFunction(currentValue[, key[, object]])[, thisArg])
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Object Restructuring                              │
+├──────────────────────────────────────┬──────────────────────────────────────┤
+│ 1. Static Restructuring              │ 2. Dynamic Restructuring & Predicates│
+├──────────────────────────────────────┼──────────────────────────────────────┤
+│ • Known, fixed property keys at      │ • Keys computed dynamically at       │
+│   authoring time.                    │   runtime (arrays, iterables, sets). │
+│ • Ergonomics gap:                    │ • Predicate filtering functions:     │
+│   const {a, b} = o; return {a, b};   │   (value, key, obj) => boolean       │
+│ • Best addressed by syntax:          │ • Capability gap: cannot be solved   │
+│   o.{a, b}                           │   by static syntax alone.            │
+│ • Engine & JIT friendly (ICs, shape  │ • Natural fit for static methods:    │
+│   transitions, static analysis, TS). │   Object.pick(o, keysOrPredicate)    │
+│                                      │   Object.omit(o, keysOrPredicate)    │
+└──────────────────────────────────────┴──────────────────────────────────────┘
+```
+
+#### 1. Static Restructuring (Ergonomics Gap)
+When the keys are statically known, destructuring today requires repeating identifiers:
+```js
+const { a, b, c } = options;
+const selected = { a, b, c };
+```
+For static omissions, rest destructuring already provides a native solution:
+```js
+const { secret, token, ...safeUser } = user;
+```
+Explorations for syntax-level static picking (e.g. `obj.{a, b}`) directly target this ergonomic gap while preserving inline caches (ICs) and static analyzability.
+
+#### 2. Dynamic Restructuring and Predicate Filtering (Capability Gap)
+When the keys are dynamically provided at runtime (e.g., from a variable, CLI flags, configuration arrays) or determined by a predicate function, static syntax cannot help. An expression like `o.{[...keys]}` would merely be a runtime method in disguise.
+
+Dynamic property extraction is a true capability gap in JavaScript. Static methods `Object.pick` and `Object.omit` provide the canonical, standard library solution for this space.
+
+---
+
+### Syntax & API
+
+```ts
+Object.pick(obj, keysOrPredicate)
+Object.omit(obj, keysOrPredicate)
 ```
 
 #### Parameters
 
-- `obj`: which object you want to pick or omit.
-- `pickedKeys` (**optional**): keys of properties you want to pick from the object. The default value is an empty array.
-- `omittedKeys` (**optional**): keys of properties you want to pick from the object. The default value is an empty array.
-- `predictedFunction` (**optional**): the function to predicted whether the property should be picked or omitted. The default value is an identity: `x => x`.
-  - `currentValue`: the current value processed in the object.
-  - `key`: the key of the `currentValue` in the object.
-  - `object`: the object `pick` was called upon.
-- `thisArg` (**optional**): the object used as `this` inside the predicted function.
+- **`obj`**: The source object. Coerced via `ToObject(obj)` (throws `TypeError` if `null` or `undefined`).
+- **`keysOrPredicate`** *(optional)*:
+  - **Iterable of keys**: An iterable (`Array`, `Set`, etc.) yielding property keys (`string` or `symbol`).
+  - **Predicate function**: A callable `(value, key, object) => boolean` invoked for each enumerable own property.
 
 #### Returns
 
-- Returns a new object, which has picked or omitted properties from the object.
+A new plain object (`%Object.prototype%`) containing the picked or non-omitted properties.
 
-### Usage
+---
+
+### Usage Examples
+
+#### Picking and Omitting with Key Lists
 
 ```js
-// default
-Object.pick({a : 1}); // => {}
-Object.omit({a : 1}); // => {a: 1}
-Object.pick({a : 0, b : 1}, v => v); // => {b: 1}
-Object.pick({a : 0, b : 1}, v => !v); // => {a: 0}
-Object.pick({}, function () { console.log(this) }); // => the object itself
-Object.pick({}, function () { console.log(this) }, window); // => Window
+const user = { id: 1, name: 'Alice', email: 'alice@example.com', role: 'admin' };
 
-Object.pick({a : 1, b : 2}, ['a']); // => {a: 1}
-Object.omit({a : 1, b : 2}, ['b']); // => {a: 1}
+// Pick specific keys
+Object.pick(user, ['id', 'name']);
+// => { id: 1, name: 'Alice' }
 
-Object.pick({a : 1, b : 2}, ['c']); // => {}
-Object.omit({a : 1, b : 2}, ['c']); // => {a: 1, b: 2}
+// Omit specific keys
+Object.omit(user, ['email', 'role']);
+// => { id: 1, name: 'Alice' }
 
-Object.pick([], [Symbol.iterator]); // => {Symbol(Symbol.iterator): f}
-Object.pick([], ['length']); // => {length: 0}
-
-Object.pick({a : 1, b : 2}, v => v === 1); // => {a: 1}
-Object.pick({a : 1, b : 2}, v => v !== 2); // => {a: 1}
-Object.pick({a : 1, b : 2}, (v, k) => k === 'a'); // => {a: 1}
-Object.pick({a : 1, b : 2}, (v, k) => k !== 'b'); // => {a: 1}
+// Symbols are fully supported
+const sym = Symbol('meta');
+const record = { a: 1, [sym]: 2 };
+Object.pick(record, [sym]);
+// => { [sym]: 2 }
 ```
 
-### Visions
+#### Picking and Omitting with Predicates
 
-1. A syntax sugar in the case of picking:
+```js
+const scores = { a: 10, b: 25, c: 5, d: 40 };
 
-    To extend the motivation of this proposal, there may be some syntax notations as an alternative of picking properties from objects, like the proposal, [proposal-slice-notation](https://github.com/tc39/proposal-slice-notation):
+// Pick properties satisfying a condition
+Object.pick(scores, (val, key) => val >= 20);
+// => { b: 25, d: 40 }
 
-    There are two ideas around how to wrap picking keys:
+// Omit properties satisfying a condition
+Object.omit(scores, (val, key) => key === 'c' || val < 10);
+// => { a: 10, b: 25, d: 40 }
+```
 
-    - square brackets:
+---
 
-        ```js
-        ({a : 1, b : 2, c : 3}).['a', 'b']; // => {a : 1, b : 2}
+### Syntax Exploration (Visions)
 
-        const keys = ['a', 'b'];
-        ({a : 1, b : 2, c : 3}).[keys[0], keys[1]]; // => {a : 1, b : 2}
-        ({a : 1, b : 2, c : 3}).[...keys]; // => {a : 1, b : 2}
-        ```
+As discussed during Stage 1, syntax notations could complement static methods for compile-time/static property extraction:
 
-    - curly brackets
+1. **Dot-brace syntax (`.{}`)**:
+   ```js
+   const subset = obj.{ a, b };
+   // Equivalent to: { a: obj.a, b: obj.b }
 
-        ```js
-        ({a : 1, b : 2, c : 3}).{a, b} // => {a : 1, b : 2}
+   // Renaming and defaults:
+   const renamed = obj.{ a, b: alias, c = defaultValue };
+   ```
 
-        const keys = ['a', 'b'];
-        ({a : 1, b : 2, c : 3}).{[keys[0]], b}; // => {a : 1}
-        ({a : 1, b : 2, c : 3}).{[...keys]}; // => {a : 1, b : 2}
+2. **Index pick notation (`.[]`)**:
+   ```js
+   const subset = obj.['a', 'b'];
+   ```
 
-        // Similar to destructuring
-        ({a : 1, b : 2, c : 3}).{a, b : B}; // => {a : 1, B : 2}
-        ```
+---
 
-        Currently, there is a disagreement on whether properties with default assignment values should be picked.
+### FAQ & Semantics
 
-        ```js
-        // If considering the meaning of picking, the initial value has no meanings
-        ({a : 1, b : 2, c : 3}).{a, d = 2}; // => {a : 1}
+#### 1. How are prototype properties handled?
+Consistent with destructuring, `Object.pick` with explicit keys reads properties via `[[Get]]` (allowing inherited properties to be picked), while `Object.omit` operates on own enumerable properties (you cannot omit/delete an inherited prototype property on a newly cloned object):
 
-        // If considering as "restructuring", the shortcut has its reason to pick
-        ({a : 1, b : 2, c : 3}).{a, d = 2}; // => {a : 1, d : 2}
-        ```
+```js
+Object.pick([1, 2, 3], ['length']); // => { length: 3 }
+// Equivalent to destructuring:
+const { length } = [1, 2, 3]; // length === 3
 
-    Nevertheless, it is just a simple vision, and feel free to discuss.
+// Omitting cannot delete inherited prototype properties:
+const arr = [1, 2, 3];
+Object.omit(arr, ['length']); // => {} (length is non-enumerable own on Array, not copied)
 
-### FAQ
+// __proto__ follows standard property access rules:
+Object.pick({}, ['__proto__']); // => { __proto__: Object.prototype }
+const { __proto__ } = {};       // __proto__ === Object.prototype
+```
 
-1. When it comes to the prototype chain of an object, should the method pick or omit it? (The answer may change)
+#### 2. What is the return value type?
+Consistent with destructuring and object spread, `Object.pick` and `Object.omit` always return plain objects inheriting from `Object.prototype`:
 
-    A: The implementation of [`_.pick`](https://lodash.com/docs/4.17.15#pick) and [`_.omit`](https://lodash.com/docs/4.17.15#omit) by Lodash has taken care about the chain. To keep the rule, we can pick off properties of prototype, but can't omit them:
+```js
+Object.pick([]);        // => {}
+Object.omit([]);        // => {}
+Object.pick(new Map()); // => {}
 
-    ```js
-    Object.pick({a : 1}, ['toString']); // => {toString: f}
-    Object.omit({a : 1}, ['toString']).toString; // => ƒ toString() { [native code] }
-    ```
+// Equivalent to object spread / destructuring behavior:
+const { ...res } = [];
+res instanceof Array;   // => false
+```
 
-    The same rule applies to `__proto__` event if it has been [deprecated](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto), because the proposal should be pure enough to not specify a special logic to eliminate deprecated properties:
+#### 3. How are `Symbol` keys handled?
+`Symbol` keys are first-class property keys in ECMAScript and are handled identically to string keys:
 
-    ```js
-    Object.pick({}, ['__proto__']); // => {__proto__: {...}}
-    Object.omit({}, ['__proto__']).__proto__; // => {...} 
-    ```
+```js
+const sym = Symbol('key');
+Object.pick({ a: 1, [sym]: 2 }, [sym]); // => { [sym]: 2 }
+Object.omit({ a: 1, [sym]: 2 }, [sym]); // => { a: 1 }
+```
 
-    In some opinions, picking off or omitting properties from the prototype chain should make the method more extendable:
+#### 4. What happens when property access throws an error (e.g., throwing getter)?
+Consistent with destructuring and `Object.assign`, property getters are executed during property access; any thrown exception propagates immediately:
 
-    ```js
-    const pickOwn = (obj, keys) => Object.pick(obj, keys.filter(key => obj.hasOwnProperty(key)));
-    const omitOwn = (obj, keys) => Object.omit(obj, keys.filter(key => obj.hasOwnProperty(key)));
-    ```
+```js
+const o = Object.defineProperty({}, 'key', {
+  get() { throw new Error('custom error'); }
+});
 
-2. What is the type of the returned value?
+// Throws Error: 'custom error'
+Object.pick(o, ['key']);
+```
 
-    A: All these methods should return plain objects:
+#### 5. Why are these static methods on `Object` rather than `Object.prototype`?
+Defining methods on `Object.prototype` risks breaking existing web code with name collisions (e.g. objects or libraries already using `.pick` or `.omit`). Additionally, `Object.create(null)` objects would be unable to use prototype methods.
 
-    ```js
-    Object.pick([]); // => {} 
-    Object.omit([]); // => {}
-    Object.pick(new Map()); // => {} 
-    Object.omit(new Map()); // => {}
-    ```
+#### 6. Why accept both key lists and predicate functions in `Object.pick`/`Object.omit`?
+Combining key lists and predicates under `Object.pick` and `Object.omit` keeps the API surface minimal and intuitive. Predicates cleanly handle filtering by value or dynamic conditions without requiring separate `pickBy`/`omitBy` methods.
 
-3. How to handle `Symbol`?
+---
 
-    A: `Symbol` should just be considered as properties within `Symbol` keys, and they should obey the rules mentioned above:
+### Related Specifications & Prior Art
 
-    ```js
-    Object.pick([], [Symbol.iterator]); // => {Symbol(Symbol.iterator): f}, pick off from the prototype
-    Object.omit([], [Symbol.iterator]); // => {}, plain objects
-    
-    const symbol = Symbol('key');
-    Object.omit({a : 1, [symbol]: 2}, [symbol]); // => {a : 1}
-    
-    Object.prototype[symbol] = 'test'; // override prototype
-    Object.pick({}, [symbol]); // => {Symbol(key): "test"}, pick off from the prototype
-    Object.omit({}, [symbol])[symbol]; // => "test", cannot omit properties from the prototype
-    ```
+* [TC39 July 2022 Meeting Notes](https://github.com/tc39/notes/blob/main/meetings/2022-07/jul-21.md#ergonomic-dynamic-object-restructuring)
+* [TypeScript Utility Types: `Pick<T, Keys>` and `Omit<T, Keys>`](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* [Lodash `_.pick`, `_.omit`, `_.pickBy`, `_.omitBy`](https://lodash.com/docs/4.17.15)
+* [TC39 Proposal: Shorthand Improvements](https://github.com/rbuckton/proposal-shorthand-improvements)
+* [TC39 Proposal: Pattern Matching](https://github.com/tc39/proposal-pattern-matching)
+* [TC39 Proposal: Extractors](https://github.com/tc39/proposal-extractors)
 
-4. If some properties of an object are not accessible like throwing an error, can `Object.pick` or `Object.omit` operate such an object?
-
-    A: I suggest throwing the error wrapped by `Object.pick` or `Object.omit`, but it is **NOT the final choice**:
-
-    ```js
-    Object.pick(Object.defineProperty({}, 'key', {
-       get() { throw new Error() }
-    }), ['key']);
-    ```
-
-    The error stack will look like this:
-
-    ```
-    Uncaught Error
-        at Object.get (<anonymous>:2:20)
-        at Object.pick (<anonymous>:2:10)
-        at <anonymous>:1:8 
-    ```
-
-5. In comparison with [**proposal-shorthand-improvements**](https://github.com/rbuckton/proposal-shorthand-improvements), when should we use these two methods?
-
-    A: Multiple properties. Assume that we need to ensure an object without any side-effected keys except `key1` and `key2`:
-
-    ```js
-    postData({[key1] : o[key1], [key2] : o[key2]});
-    postData(Object.pick(o, [key1, key2])); 
-    ```
-
-6. Why can't be defined on the `Object.prototype` directly?
-
-    A: As `Object` is especially fundamental, and both of them will result in conflicts of properties of any other objects. In shorthand, if defined, any objects inherited from `Object` with `pick` or `omit` defined in its prototype should break.
-
-7. Why not define filtered methods corresponding to two actions: [`pickBy`](https://lodash.com/docs/4.17.15#pickBy) and [`omitBy`](https://lodash.com/docs/4.17.15#omitBy) like Lodash?
-
-    A: It is [unnecessary](https://github.com/aleen42/proposal-object-pick-or-omit/issues/2) to double two methods, because it can be combined into the argument instead:
-
-    Besides, the passing filtered method can be easily reversed with equal meaning, and it means that `omitBy` can be easily defined as `pickBy`'s inverse.
-
-    ```js
-    Object.pick({a : 1, b : 2}, v => v);
-
-    // Equivalent to the following:
-    Object.omitBy({a: 1, b : 2}, v => !v);
-    ```
-
-***Notice: If you have any suggestions or ideas about this proposal? Appreciate your discussions via issues.***

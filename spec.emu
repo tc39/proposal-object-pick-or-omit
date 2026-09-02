@@ -39,8 +39,10 @@ contributors: Aleen, Hemanth HM, Jordan Harband, J.S. Choi
           1. Let _propKey_ be ? ToPropertyKey(_nextValue_).
           1. Append _propKey_ to _keysList_.
       1. For each element _key_ of _keysList_, do
-        1. Let _value_ be ? Get(_obj_, _key_).
-        1. Perform ! CreateDataPropertyOrThrow(_result_, _key_, _value_).
+        1. Let _has_ be ? HasProperty(_obj_, _key_).
+        1. If _has_ is *true*, then
+          1. Let _value_ be ? Get(_obj_, _key_).
+          1. Perform ! CreateDataPropertyOrThrow(_result_, _key_, _value_).
       1. Return _result_.
     </emu-alg>
   </emu-clause>

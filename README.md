@@ -220,6 +220,24 @@ Combining key lists and predicates under `Object.pick` and `Object.omit` keeps t
 
 ---
 
+### Committee Feedback & Champions' Next Steps
+
+During the [July 2022 TC39 plenary](https://github.com/tc39/notes/blob/main/meetings/2022-07/jul-21.md#ergonomic-dynamic-object-restructuring), the proposal achieved Stage 1 consensus with constructive feedback:
+
+* **Michael Ficarra (MCH)** noted strong support: *"This is one of the last things I reach for lodash for."*
+* **Kris Kowal (KKL)** and **Shu-yu Guo (SYG)** expressed a desire to thoroughly explore syntax directions before locking in a method-only API. SYG noted that methods accepting string arrays encourage computed property access, which impacts JIT analyzability and inline cache (IC) optimization, while also noting typing considerations for TypeScript.
+* **Dan Ehrenberg (DE)** commented that syntax forms like `.{a, b}` look clean, typeable, and IC-amenable, while advising caution regarding syntax expansion.
+* **Mark Miller (MM)** noted that advancing to Stage 2 required formal spec text and clearer scoping.
+
+#### Next Steps for the Champions:
+1. **Dual-Track Problem Framing:** Explicitly separate static restructuring (ergonomics problem suited for syntax explorations) from dynamic restructuring & predicate filtering (capability problem requiring standard library methods).
+2. **Dynamic `omit` Justification:** Clarify that static omission is already solved by rest destructuring (`const { a, ...rest } = o`), while dynamic omission has no language equivalent.
+3. **Formal Specification:** Maintain comprehensive, rigorous Ecmarkup specification algorithms in `spec.emu` covering prototype `[[Get]]` semantics, own-enumerable iterations, symbol properties, and getter evaluation.
+4. **Ecosystem Data:** Gather empirical corpus metrics on real-world usage of `_.pick`, `_.omit`, `_.pickBy`, and `_.omitBy` across open-source codebases (bucketed by static literals vs dynamic keys vs predicate callbacks).
+5. **Cross-Proposal Alignment:** Track integration with related proposals including Pattern Matching, Extractors, and Iterator Helpers.
+
+---
+
 ### Related Specifications & Prior Art
 
 * [TC39 July 2022 Meeting Notes](https://github.com/tc39/notes/blob/main/meetings/2022-07/jul-21.md#ergonomic-dynamic-object-restructuring)

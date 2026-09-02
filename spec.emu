@@ -4,20 +4,90 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
 <script src="./spec.js"></script>
 <pre class="metadata">
-title: Proposal Title Goes Here
-stage: -1
-contributors: Your Name(s) Here
+title: Object.pick and Object.omit
+stage: 1
+contributors: Aleen, Hemanth HM, Jordan Harband, J.S. Choi
 </pre>
 
-<emu-clause id="sec-demo-clause">
-  <h1>This is an emu-clause</h1>
-  <p>This is an algorithm:</p>
-  <emu-alg>
-    1. Let _proposal_ be *undefined*.
-    1. If IsAccepted(_proposal_),
-      1. Let _stage_ be *0*.
-    1. Else,
-      1. Let _stage_ be *-1*.
-    1. Return ? ToString(_proposal_).
-  </emu-alg>
+<emu-clause id="sec-properties-of-the-object-constructor">
+  <h1>Properties of the Object Constructor</h1>
+
+  <emu-clause id="sec-object.pick">
+    <h1>Object.pick ( _O_, _predicateOrKeys_ )</h1>
+    <p>When the `Object.pick` function is called with arguments _O_ and _predicateOrKeys_, the following steps are taken:</p>
+    <emu-alg>
+      1. Let _obj_ be ? ToObject(_O_).
+      1. Let _result_ be OrdinaryObjectCreate(%Object.prototype%).
+      1. If _predicateOrKeys_ is *undefined*, return _result_.
+      1. If IsCallable(_predicateOrKeys_) is *true*, then
+        1. Let _keys_ be ? _obj_.[[OwnPropertyKeys]]().
+        1. For each element _key_ of _keys_, do
+          1. Let _desc_ be ? _obj_.[[GetOwnProperty]](_key_).
+          1. If _desc_ is not *undefined* and _desc_.[[Enumerable]] is *true*, then
+            1. Let _value_ be ? Get(_obj_, _key_).
+            1. Let _selected_ be ToBoolean(? Call(_predicateOrKeys_, *undefined*, « _value_, _key_, _obj_ »)).
+            1. If _selected_ is *true*, then
+              1. Perform ! CreateDataPropertyOrThrow(_result_, _key_, _value_).
+        1. Return _result_.
+      1. Let _iteratorRecord_ be ? GetIterator(_predicateOrKeys_, ~sync~).
+      1. Let _keysList_ be a new empty List.
+      1. Let _next_ be *true*.
+      1. Repeat, while _next_ is not *false*,
+        1. Let _next_ be ? IteratorStep(_iteratorRecord_).
+        1. If _next_ is not *false*, then
+          1. Let _nextValue_ be ? IteratorValue(_next_).
+          1. Let _propKey_ be ? ToPropertyKey(_nextValue_).
+          1. Append _propKey_ to _keysList_.
+      1. For each element _key_ of _keysList_, do
+        1. Let _has_ be ? HasProperty(_obj_, _key_).
+        1. If _has_ is *true*, then
+          1. Let _value_ be ? Get(_obj_, _key_).
+          1. Perform ! CreateDataPropertyOrThrow(_result_, _key_, _value_).
+      1. Return _result_.
+    </emu-alg>
+  </emu-clause>
+
+  <emu-clause id="sec-object.omit">
+    <h1>Object.omit ( _O_, _predicateOrKeys_ )</h1>
+    <p>When the `Object.omit` function is called with arguments _O_ and _predicateOrKeys_, the following steps are taken:</p>
+    <emu-alg>
+      1. Let _obj_ be ? ToObject(_O_).
+      1. Let _result_ be OrdinaryObjectCreate(%Object.prototype%).
+      1. If _predicateOrKeys_ is *undefined*, then
+        1. Let _keys_ be ? _obj_.[[OwnPropertyKeys]]().
+        1. For each element _key_ of _keys_, do
+          1. Let _desc_ be ? _obj_.[[GetOwnProperty]](_key_).
+          1. If _desc_ is not *undefined* and _desc_.[[Enumerable]] is *true*, then
+            1. Let _value_ be ? Get(_obj_, _key_).
+            1. Perform ! CreateDataPropertyOrThrow(_result_, _key_, _value_).
+        1. Return _result_.
+      1. If IsCallable(_predicateOrKeys_) is *true*, then
+        1. Let _keys_ be ? _obj_.[[OwnPropertyKeys]]().
+        1. For each element _key_ of _keys_, do
+          1. Let _desc_ be ? _obj_.[[GetOwnProperty]](_key_).
+          1. If _desc_ is not *undefined* and _desc_.[[Enumerable]] is *true*, then
+            1. Let _value_ be ? Get(_obj_, _key_).
+            1. Let _excluded_ be ToBoolean(? Call(_predicateOrKeys_, *undefined*, « _value_, _key_, _obj_ »)).
+            1. If _excluded_ is *false*, then
+              1. Perform ! CreateDataPropertyOrThrow(_result_, _key_, _value_).
+        1. Return _result_.
+      1. Let _iteratorRecord_ be ? GetIterator(_predicateOrKeys_, ~sync~).
+      1. Let _omittedKeys_ be a new empty List.
+      1. Let _next_ be *true*.
+      1. Repeat, while _next_ is not *false*,
+        1. Let _next_ be ? IteratorStep(_iteratorRecord_).
+        1. If _next_ is not *false*, then
+          1. Let _nextValue_ be ? IteratorValue(_next_).
+          1. Let _propKey_ be ? ToPropertyKey(_nextValue_).
+          1. Append _propKey_ to _omittedKeys_.
+      1. Let _keys_ be ? _obj_.[[OwnPropertyKeys]]().
+      1. For each element _key_ of _keys_, do
+        1. Let _desc_ be ? _obj_.[[GetOwnProperty]](_key_).
+        1. If _desc_ is not *undefined* and _desc_.[[Enumerable]] is *true*, then
+          1. If _omittedKeys_ does not contain _key_, then
+            1. Let _value_ be ? Get(_obj_, _key_).
+            1. Perform ! CreateDataPropertyOrThrow(_result_, _key_, _value_).
+      1. Return _result_.
+    </emu-alg>
+  </emu-clause>
 </emu-clause>
